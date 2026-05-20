@@ -1,4 +1,4 @@
-# parent_app
+# teacher_app
 
 A new Flutter project.
 
