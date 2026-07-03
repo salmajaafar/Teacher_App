@@ -31,7 +31,7 @@ class LoginBody extends StatelessWidget {
 
                
                 Text(
-                  'EMAIL',
+                  'Number',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14.sp,
@@ -40,8 +40,8 @@ class LoginBody extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 CustomTextField(
-                  hint: 'abc@kopag.com',
-                  controller: authController.email,
+                  hint: 'Enter your number',
+                  controller: authController.Number,
                 ),
 
                 SizedBox(height: 20.h),

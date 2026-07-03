@@ -4,7 +4,7 @@ import 'package:parent_app/core/colorsApp.dart';
 
 class CustomButton extends StatelessWidget {
   final String textButton;
-  final void Function() onPressed;
+  final void Function()? onPressed;
   final double? width;
 
   final IconData? icon;

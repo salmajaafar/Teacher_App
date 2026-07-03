@@ -25,7 +25,9 @@ class GradesScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const ConcaveMaroonHeader(title: 'GRADES'),
+
             SizedBox(height: 12.h),
+
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Text(
@@ -35,72 +37,106 @@ class GradesScreen extends StatelessWidget {
                   fontSize: 10.sp,
                   fontWeight: FontWeight.w700,
                   color: ColorsApp.textDarkBrown,
-                  height: 1.45,
-                  letterSpacing: 0.3,
                 ),
               ),
             ),
+
             SizedBox(height: 10.h),
+
             Obx(
               () => ClassPillSelector(
-                pills: AppData.classPills,
+                pills:  c.attendanceController.classPills,
                 selectedIndex: c.selectedPillIndex.value,
                 onSelected: (i) => c.selectedPillIndex.value = i,
               ),
             ),
+
             SizedBox(height: 8.h),
+
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h),
+                padding: EdgeInsets.fromLTRB(
+                  16.w,
+                  4.h,
+                  16.w,
+                  8.h,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     RoundedLabeledField(
                       label: 'TEST DATE:',
-                      hint: 'XX/YY/ZZZZ',
+                      hint: 'YYYY-MM-DD',
                       controller: c.testDateCtrl,
-                      suffix: Icon(
+                      suffix: const Icon(
                         Icons.calendar_today_outlined,
-                        color: ColorsApp.PraimaryMain,
-                        size: 20.sp,
                       ),
                     ),
+
                     _testTypeDropdown(c),
+
                     RoundedLabeledField(
                       label: 'THE FULL MARK IS:',
-                      hint: '100...90...80....',
+                      hint: '100',
                       controller: c.fullMarkCtrl,
                       keyboardType: TextInputType.number,
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 4.h, bottom: 10.h),
-                      child: Text(
-                        'STUDENTS:',
-                        style: TextStyle(
-                          fontFamily: 'KiwiMaru',
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w800,
-                          color: ColorsApp.textDarkBrown,
-                        ),
+
+                    SizedBox(height: 10.h),
+
+                    Text(
+                      'STUDENTS:',
+                      style: TextStyle(
+                        fontFamily: 'KiwiMaru',
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w800,
+                        color: ColorsApp.textDarkBrown,
                       ),
                     ),
-                    ...List.generate(
-                      AppData.students.length,
-                      (i) => StudentGradeRow(
-                        studentName: AppData.students[i],
-                        markController: c.markCtrls[i],
-                        noteController: c.noteCtrls[i],
-                        fullMark: c.fullMark,
-                        onSend: () => c.sendNoteToParent(i),
-                      ),
-                    ),
+
                     SizedBox(height: 8.h),
+
+                    Obx(() {
+                      final students =
+                          c.attendanceController.students;
+
+                      if (students.isEmpty) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 20.h,
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'No students found',
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: List.generate(
+                          students.length,
+                          (i) => StudentGradeRow(
+                            studentName: students[i].name,
+                            markController: c.markCtrls[i],
+                            noteController: c.noteCtrls[i],
+                            fullMark: c.fullMarkValue,
+                            onSend: () =>
+                                c.sendNoteToParent(i),
+                          ),
+                        ),
+                      );
+                    }),
+
+                    SizedBox(height: 20.h),
+
                     CustomButton(
                       width: double.infinity,
                       textButton: 'Save Grades',
                       onPressed: c.saveGrades,
                     ),
-                    SizedBox(height: 88.h),
+
+                    SizedBox(height: 40.h),
                   ],
                 ),
               ),
@@ -113,55 +149,46 @@ class GradesScreen extends StatelessWidget {
 
   Widget _testTypeDropdown(GradesController c) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 6.h),
+      padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'TEST TYPE:',
             style: TextStyle(
-              fontFamily: 'KiwiMaru',
               fontSize: 11.sp,
               fontWeight: FontWeight.w700,
-              color: ColorsApp.textDarkBrown,
             ),
           ),
+
           SizedBox(height: 6.h),
+
           Obx(
             () => Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+              ),
               decoration: BoxDecoration(
-                color: ColorsApp.bgPureWhite,
-                borderRadius: BorderRadius.circular(50.r),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(
+                  50.r,
+                ),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  hint: Text(
-                    'SELECT TYPE',
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: ColorsApp.textLightBrown,
-                    ),
-                  ),
                   value: c.selectedTestType.value,
-                  icon: Icon(Icons.keyboard_arrow_down,
-                      color: ColorsApp.PraimaryMain),
-                  items: AppData.testTypes
+                  hint: const Text('SELECT TYPE'),
+                  items: c.testTypeMap.keys
                       .map(
-                        (e) => DropdownMenuItem(
+                        (e) => DropdownMenuItem<String>(
                           value: e,
-                          child: Text(
-                            e,
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              color: ColorsApp.textDarkBrown,
-                            ),
-                          ),
+                          child: Text(e),
                         ),
                       )
                       .toList(),
-                  onChanged: (v) => c.selectedTestType.value = v,
+                  onChanged: (v) =>
+                      c.selectedTestType.value = v,
                 ),
               ),
             ),

@@ -23,11 +23,11 @@ class WhatWasGivenScreen extends StatelessWidget {
         children: [
           const SemiCircleHeader(title: 'WHAT WAS GIVEN', showBack: true),
           const SectionLabel('CHOOSE THE GRADE, SECTION, AND SUBJECT :'),
-          Obx(() => ClassPillSelector(
-                pills: AppData.classPills,
-                selectedIndex: c.selectedPillIndex.value,
-                onSelected: (i) => c.selectedPillIndex.value = i,
-              )),
+          // Obx(() => ClassPillSelector(
+          //       pills: AppData.classPills,
+          //       selectedIndex: c.selectedPillIndex.value,
+          //       onSelected: (i) => c.selectedPillIndex.value = i,
+          //     )),
           RoundedLabeledField(
             label: 'DATE :',
             hint: 'XX/YY/ZZZZ',

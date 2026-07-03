@@ -1,115 +1,117 @@
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:parent_app/views/screens/confirmation_lottie.dart';
-// import 'package:parent_app/views/screens/verification.dart';
-// import 'package:parent_app/views/widget/error_bottomsheet.dart';
-
-// class AuthController extends GetxController {
-//   final email = TextEditingController();
-//   final password = TextEditingController();
-
-//   var isLoading = false.obs;
-//   var isPasswordHidden = true.obs;
-
-//   void togglePasswordVisibility() {
-//     isPasswordHidden.value = !isPasswordHidden.value;
-//   }
-
-//   void login() {
-//     if (email.text.trim().isEmpty || password.text.trim().isEmpty) {
-//       ErrorBottomSheet.showErrorBottomSheet(
-//         title: "Error",
-//         message: "Please fill all fields",
-//       );
-//       return;
-//     }
-
-//     isLoading.value = true;
-
-//     Future.delayed(const Duration(seconds: 2), () {
-//       isLoading.value = false;
-
-//       ErrorBottomSheet.showErrorBottomSheet(
-//         title: "Success",
-//         message: "Logged in successfully",
-//       );
-
-//       Get.to(() => const ConfirmationLottie());
-//       await Future.delayed(const Duration(seconds: 3));
-//       Get.off(() => VerificationView());
-//     });
-//   }
-
-//   void forgotPassword() {
-//     ErrorBottomSheet.showErrorBottomSheet(
-//       title: "Forgot Password",
-//       message: "Redirecting to password reset screen...",
-//     );
-//   }
-
-//   @override
-//   void onClose() {
-//     email.dispose();
-//     password.dispose();
-//     super.onClose();
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:parent_app/views/screens/confirmation_lottie.dart';
-import 'package:parent_app/views/screens/forgot_password_screen.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
 import 'package:parent_app/views/screens/verification.dart';
+import 'package:parent_app/views/screens/confirmation_lottie.dart';
 import 'package:parent_app/views/widget/error_bottomsheet.dart';
 
 class AuthController extends GetxController {
-  final email = TextEditingController();
-  final password = TextEditingController();
+  final box = GetStorage( );
 
+  
+  final TextEditingController Number = TextEditingController();
+  final TextEditingController password = TextEditingController();
+
+  
   var isLoading = false.obs;
   var isPasswordHidden = true.obs;
 
+  
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
 
   
-  void login() async {
-    if (email.text.trim().isEmpty || password.text.trim().isEmpty) {
+  Future<void> login() async {
+    
+    if (Number.text.trim().isEmpty || password.text.trim().isEmpty) {
       ErrorBottomSheet.showErrorBottomSheet(
-        title: "Error",
-        message: "Please fill all fields",
+        title: "Alert",
+        message: "Please fill in all fields to continue",
       );
       return;
     }
 
     isLoading.value = true;
+    try {
+     
+      const String apiUrl = 'https://satiable-paternity-darkness.ngrok-free.dev/api/Auth/login'; 
 
-    
-    await Future.delayed(const Duration(seconds: 2));
-    
-    isLoading.value = false;
+      final response = await http.post(
+        Uri.parse(apiUrl ),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'accountNumber': Number.text.trim(),
+          'password': password.text,
+        }),
+      );
 
-    
-    Get.to(() => const ConfirmationLottie());
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        
+       
+        await box.write('accessToken', responseData['accessToken']);
+        await box.write('refreshToken', responseData['refreshToken']);
+        await box.write('user', responseData['user']);
 
+       
+        Get.to(() => const ConfirmationLottie());
+        await Future.delayed(const Duration(seconds: 4));
+        Get.off(() => OtpPage(Number: Number.text.trim())); 
+        
+      } else {
+       
+        final Map<String, dynamic> errorData = jsonDecode(response.body);
+        ErrorBottomSheet.showErrorBottomSheet(
+          title: "Login Failed",
+          message: errorData['message'] ?? "Incorrect number or password, please try again",
+        );
+      }
+    } on SocketException {
+      
+      ErrorBottomSheet.showErrorBottomSheet(
+        title: "Connection Error",
+        message: "No internet connection, please check your network and try again",
+      );
+    } on http.ClientException {
     
-    await Future.delayed(const Duration(seconds: 3));
+      ErrorBottomSheet.showErrorBottomSheet(
+        title: "Network Error",
+        message: "A problem occurred while connecting to the server, please try again later",
+        );
+    } catch (e) {
     
+      ErrorBottomSheet.showErrorBottomSheet(
+        title: "Unexpected Error",
+        message: "Something went wrong: $e",
+      );
+    } finally {
     
-    Get.off(() => OtpPage(email:"${email}" ,)); 
-  }
-
-  void forgotPassword() {
-    Get.to(
-      () => const ForgotPasswordScreen(),
-      arguments: email.text.trim(),
-    );
+      isLoading.value = false;
+    }
   }
 
   @override
   void onClose() {
-    email.dispose();
+   
+    Number.dispose();
     password.dispose();
     super.onClose();
+  }
+
+  String? get accessToken => box.read('accessToken');
+  Map<String, dynamic>? get user => box.read('user');
+  String? get userRole => user?['role'];
+
+  
+  void logout() {
+    box.erase();
+    Get.snackbar('Logged Out', 'See you later');
+    // Get.offAll(() => LoginScreen());
   }
 }

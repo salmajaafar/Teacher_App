@@ -18,7 +18,7 @@ class _InteractiveForgotPasswordState extends State<InteractiveForgotPassword> {
   void _openForgotPassword() {
     String initialEmail = '';
     if (Get.isRegistered<AuthController>()) {
-      initialEmail = Get.find<AuthController>().email.text.trim();
+      initialEmail = Get.find<AuthController>().Number.text.trim();
     }
     Get.to(
       () => const ForgotPasswordScreen(),

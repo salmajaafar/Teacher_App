@@ -46,6 +46,6 @@ class ForgotPasswordController extends GetxController {
 
     Get.to(() => const ConfirmationLottie());
     await Future.delayed(const Duration(seconds: 2));
-    Get.off(() => OtpPage(email: value));
+    Get.off(() => OtpPage(Number: value));
   }
 }

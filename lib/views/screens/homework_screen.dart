@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:parent_app/controllers/grades_controller.dart';
 import 'package:parent_app/controllers/homework_controller.dart';
 import 'package:parent_app/core/AppData.dart';
 import 'package:parent_app/core/colorsApp.dart';
@@ -16,6 +17,7 @@ class HomeworkScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = Get.put(HomeworkController());
+final p = Get.put(GradesController());
 
     return Scaffold(
       backgroundColor: ColorsApp.creamBase,
@@ -24,7 +26,7 @@ class HomeworkScreen extends StatelessWidget {
           const SemiCircleHeader(title: 'HOMEWORK', showBack: true),
           const SectionLabel('CHOOSE THE GRADE, SECTION, AND SUBJECT :'),
           Obx(() => ClassPillSelector(
-                pills: AppData.classPills,
+                pills: p.attendanceController.classPills,
                 selectedIndex: c.selectedPillIndex.value,
                 onSelected: (i) => c.selectedPillIndex.value = i,
               )),

@@ -9,9 +9,9 @@ import 'package:parent_app/views/widget/logo.dart';
 import 'package:parent_app/views/widget/pineCodeTextField.dart';
 
 class OtpPage extends StatelessWidget {
-  final String email;
+  final String Number;
 
-  const OtpPage({super.key, required this.email});
+  const OtpPage({super.key, required this.Number});
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +108,7 @@ class OtpPage extends StatelessWidget {
                   onPressed: () {
                     controller.verifyCode(
                       otpCode.trim(),
-                      email.trim(),
+                      Number.trim(),
                     );
                   },
                 ),

@@ -1,69 +1,69 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:parent_app/core/colorsApp.dart';
-import 'package:parent_app/routes/routes.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProfileController extends GetxController {
-  final name = 'HUDA AHMAD ALI'.obs;
-  final phone = '06841544585'.obs;
-  final email = 'HUDAALI@GMAIL.COM'.obs;
-  final grades = ['SEVEN/FIRST', 'EIGHTH/SECOND'].obs;
-  final subjects = ['SCIENCE', 'MATH', 'ARABIC'].obs;
+  final box = GetStorage();
+
+  // بيانات البروفايل الملاحظة
+  var name = "".obs;
+  var phone = "".obs;
+  var email = "".obs;
+  var grades = <String>[].obs;
+  var subjects = <String>[].obs;
+  var isLoading = true.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchProfileData();
+  }
+
+  Future<void> fetchProfileData() async {
+    isLoading.value = true;
+    try {
+      final token = box.read('accessToken');
+      const String apiUrl = 'https://satiable-paternity-darkness.ngrok-free.dev/api/Teacher/profile';
+
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': '*/*',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        // تحديث البيانات من الـ API
+        name.value = data['fullName'] ?? "Unknown";
+        phone.value = data['phoneNumber'] ?? "N/A";
+        email.value = data['email'] ?? "N/A";
+        
+        // تحويل القوائم
+        if (data['schedules'] != null) {
+          grades.assignAll(List<String>.from(data['schedules']));
+        }
+        
+        if (data['subjectsTaught'] != null) {
+          subjects.assignAll(List<String>.from(data['subjectsTaught']));
+        }
+        
+      } else {
+        Get.snackbar('Error', 'Failed to load profile data');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Connection error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void logout() {
-    Get.dialog(
-      Dialog(
-        backgroundColor: ColorsApp.bgPureWhite,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-        child: Padding(
-          padding: EdgeInsets.all(20.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Do you really want to log out?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'KiwiMaru',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: ColorsApp.textDarkBrown,
-                ),
-              ),
-              SizedBox(height: 20.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.back();
-                      Get.offAllNamed(AppRoutes.welcome);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorsApp.logoutYesRed,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50.r),
-                      ),
-                    ),
-                    child: Text('yes', style: TextStyle(fontSize: 13.sp,color: ColorsApp.bgPureWhite)),
-                  ),
-                  ElevatedButton(
-                    onPressed: Get.back,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorsApp.logoutNoGreen,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50.r),
-                      ),
-                    ),
-                    child: Text('no', style: TextStyle(fontSize: 13.sp,color: ColorsApp.bgPureWhite)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    box.erase();
+    Get.snackbar('Logged Out', 'Successfully logged out');
+    // Get.offAll(() => LoginScreen()); // توجه لشاشة تسجيل الدخول
   }
 }
